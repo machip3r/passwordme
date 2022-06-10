@@ -1,0 +1,86 @@
+/* FONTS */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&family=Rubik:wght@300;400&display=swap");
+
+/* GENERAL */
+:root {
+  --primary: #031b62;
+  --secondary: #d1d1d1;
+  --accent: #0050bc;
+  --error: #ff5252;
+  --info: #2196f3;
+  --success: #50bc00;
+  --warning: #ffaf43;
+  --background: #f5f1e8;
+
+  --main-font: "DM Sans", sans-serif;
+  --secondary-font: "Rubik", sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--main-font) !important;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2.4em;
+}
+
+h3 {
+  font-size: 2em;
+}
+
+h4 {
+  font-size: 1.6em;
+}
+
+h5 {
+  font-size: 1.2em;
+}
+
+h6 {
+  font-size: 0.8em;
+}
+
+a {
+  color: var(--accent) !important;
+  transition: all 0.3s ease-in-out;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--info) !important;
+}
+
+.v-application {
+  font-family: var(--secondary-font) !important;
+}
+
+body {
+  width: 100%;
+  font-weight: 400;
+  background-color: var(--background);
+  overflow-x: hidden;
+}
+
+.button {
+  font-family: var(--main-font) !important;
+  font-weight: 900 !important;
+  font-size: 1.2em !important;
+  text-transform: none !important;
+  height: 50px !important;
+}

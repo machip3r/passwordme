@@ -7,8 +7,13 @@
   </v-app>
 </template>
 
+<style lang="css">
+@import "./styles/main.css";
+@import "./styles/password.css";
+</style>
+
 <script>
-import { NavigationDrawer } from "./components/NavigationDrawer.vue";
+import NavigationDrawer from "./components/NavigationDrawer.vue";
 
 export default {
   name: "App",
