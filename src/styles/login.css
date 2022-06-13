@@ -72,3 +72,92 @@
   background: #d4d4d4;
   color: var(--background) !important;
 }
+
+.container-form-login p {
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.container-form-login a {
+  margin-top: 10px;
+  font-weight: 700;
+}
+
+.container-register {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-color-register,
+.right-color-register {
+  width: 50%;
+  height: 100%;
+  padding: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-color-register {
+  background-color: var(--background) !important;
+  color: var(--primary);
+}
+
+.left-color-register img {
+  width: 50%;
+}
+
+.right-color-register {
+  background-color: var(--accent) !important;
+  color: var(--background);
+}
+
+.right-color-register h1 {
+  color: var(--background);
+}
+
+.container-form-register {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.container-form-register .v-form {
+  width: 80%;
+}
+
+.button-register {
+  width: 100%;
+  height: 50px !important;
+  font-family: var(--main-font);
+  font-weight: 700;
+  font-size: 1.1em !important;
+  border-radius: 10px !important;
+  background: linear-gradient(268.68deg, #ffffff -46.5%, #d1d1d1 130.96%);
+  color: var(--primary) !important;
+  text-transform: none !important;
+}
+
+.button-register:disabled {
+  background: #d4d4d4;
+  color: var(--background) !important;
+}
+
+.container-form-register p {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  color: var(--secondary);
+}
+
+.container-form-register a {
+  margin-top: 10px;
+  font-weight: 700;
+  color: var(--background) !important;
+}

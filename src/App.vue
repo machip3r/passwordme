@@ -17,10 +17,6 @@ import NavigationDrawer from "./components/NavigationDrawer.vue";
 export default {
   name: "App",
 
-  data: () => ({
-    //
-  }),
-
   components: {
     NavigationDrawer,
   },
