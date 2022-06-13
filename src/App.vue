@@ -1,15 +1,14 @@
 <template>
   <v-app>
-    <v-main>
-      <NavigationDrawer />
-      <router-view />
-    </v-main>
+    <NavigationDrawer />
+    <router-view />
   </v-app>
 </template>
 
 <style lang="css">
 @import "./styles/main.css";
 @import "./styles/password.css";
+@import "./styles/login.css";
 </style>
 
 <script>

@@ -1,5 +1,11 @@
 <template>
-  <v-navigation-drawer permanent expand-on-hover color="accent" app>
+  <v-navigation-drawer
+    permanent
+    expand-on-hover
+    color="accent"
+    app
+    v-if="this.$route.name != 'Login'"
+  >
     <v-list>
       <v-list-item>
         <v-list-item-title>
@@ -14,13 +20,25 @@
           link
           class="drawer-selected drawer-first-option"
           active-class="drawer-selected--active"
+          :to="{ name: 'Home' }"
         >
           <v-list-item-icon>
             <v-icon size="20">fas fa-fingerprint</v-icon>
           </v-list-item-icon>
           <v-list-item-title>Inicio</v-list-item-title>
         </v-list-item>
-        <v-list-item class="drawer-subheader" @click="selectedItem = 0">
+        <v-list-item
+          link
+          class="drawer-selected"
+          active-class="drawer-selected--active"
+          :to="{ name: 'AllPasswords' }"
+        >
+          <v-list-item-icon>
+            <v-icon size="20">fas fa-lock</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Todas las contraseñas</v-list-item-title>
+        </v-list-item>
+        <v-list-item class="drawer-subheader">
           <v-list-item-title>Etiquetas</v-list-item-title>
           <v-list-item-icon>
             <v-icon>fas fa-plus</v-icon>
@@ -31,6 +49,7 @@
           :key="i"
           active-class="drawer-selected--active"
           class="drawer-selected"
+          :to="{ name: item.to }"
         >
           <v-list-item-icon>
             <v-icon size="18">fas fa-tag</v-icon>
@@ -50,18 +69,13 @@ export default {
 
   data: () => ({
     selectedItem: 0,
-    /* items: [
-      { text: "Real-Time" },
-      { text: "Audience" },
-      { text: "Conversions" },
-    ], */
     items: [],
   }),
   created() {
-    this.items = getTags();
+    //this.items = getTags();
   },
   methods: {
-    async getTags() {},
+    //async getTags() {},
   },
 };
 </script>

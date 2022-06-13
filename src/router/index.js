@@ -6,6 +6,11 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
+    name: "",
+    beforeEnter: (to, from, next) => router.push("/home"),
+  },
+  {
+    path: "/home",
     name: "Home",
     component: () => import("../views/HomeView.vue"),
   },
@@ -13,6 +18,11 @@ const routes = [
     path: "/login",
     name: "Login",
     component: () => import("../views/LoginView.vue"),
+  },
+  {
+    path: "/all",
+    name: "AllPasswords",
+    component: () => import("../views/AllView.vue"),
   },
 ];
 

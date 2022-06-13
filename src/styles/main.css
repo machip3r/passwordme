@@ -73,14 +73,10 @@ a:hover {
 body {
   width: 100%;
   font-weight: 400;
-  background-color: var(--background);
+  background-color: var(--background) !important;
   overflow-x: hidden;
 }
 
-.button {
-  font-family: var(--main-font) !important;
-  font-weight: 900 !important;
-  font-size: 1.2em !important;
-  text-transform: none !important;
-  height: 50px !important;
+.container-mac {
+  padding: 20px 20px 20px 90px !important;
 }

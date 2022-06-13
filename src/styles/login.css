@@ -1,0 +1,74 @@
+.container-all-login-view {
+  width: 100%;
+  height: 100vh;
+}
+
+.container-login {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-color-login,
+.right-color-login {
+  width: 50%;
+  height: 100%;
+  padding: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-color-login {
+  background-color: var(--accent) !important;
+  color: var(--background);
+}
+
+.left-color-login img {
+  width: 50%;
+}
+
+.right-color-login {
+  background-color: var(--background) !important;
+}
+
+.right-color-login h1 {
+  color: var(--primary);
+}
+
+.container-form-login {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.container-form-login .v-form {
+  width: 80%;
+}
+
+.v-input__slot {
+  background-color: #ffffff !important;
+}
+
+.button-login {
+  width: 100%;
+  height: 50px !important;
+  font-family: var(--main-font);
+  font-weight: 700;
+  font-size: 1.1em !important;
+  border-radius: 10px !important;
+  background: linear-gradient(266.74deg, #0050bc -23.08%, #031b62 134.95%);
+  color: var(--background) !important;
+  text-transform: none !important;
+}
+
+.button-login:disabled {
+  background: #d4d4d4;
+  color: var(--background) !important;
+}
