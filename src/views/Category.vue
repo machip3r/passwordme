@@ -347,7 +347,6 @@
                 v-model="category"
                 prepend-inner-icon="fas fa-tag"
                 label="Categoría"
-                :rules="categoryRules"
                 outlined
                 clearable
               ></v-text-field>
