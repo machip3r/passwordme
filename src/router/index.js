@@ -8,8 +8,7 @@ const routes = [
   {
     path: "/",
     beforeEnter: (to, from, next) => {
-      if (store.getters.getAuthToken) router.push("/home");
-      else router.push("/login");
+      if (store.getters.getAuthToken !== null) router.push("/home");
       next();
     },
     beforeEnter: (to, from, next) => router.push("/home"),
@@ -19,7 +18,7 @@ const routes = [
     name: "Home",
     component: () => import("../views/HomeView.vue"),
     beforeEnter: (to, from, next) => {
-      if (!store.getters.getAuthToken) router.push("/login");
+      if (store.getters.getAuthToken === null) router.push("/login");
       next();
     },
   },
@@ -28,7 +27,7 @@ const routes = [
     name: "Login",
     component: () => import("../views/LoginView.vue"),
     beforeEnter: (to, from, next) => {
-      if (store.getters.getAuthToken) router.push("/home");
+      if (store.getters.getAuthToken !== null) router.push("/home");
       next();
     },
   },
@@ -37,9 +36,32 @@ const routes = [
     name: "AllPasswords",
     component: () => import("../views/AllView.vue"),
     beforeEnter: (to, from, next) => {
-      if (!store.getters.getAuthToken) router.push("/login");
+      if (store.getters.getAuthToken === null) router.push("/login");
       next();
     },
+  },
+  {
+    path: "/category",
+    name: "Category",
+    component: () => import("../views/Category.vue"),
+    beforeEnter: (to, from, next) => {
+      if (store.getters.getAuthToken === null) router.push("/login");
+      next();
+
+      /* let id = to.params.id;
+
+      const uid = getAuth().currentUser.uid;
+      Business.getBussinesByUId(uid).then((value) => {
+        let validate = value.some((item) => item.id_business == id);
+
+        if (validate) {
+          next();
+        } else {
+          router.push("/");
+        }
+      }); */
+    },
+    meta: { title: "Dashboard" },
   },
 ];
 

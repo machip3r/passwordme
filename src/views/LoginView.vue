@@ -24,6 +24,7 @@
               prepend-inner-icon="fas fa-lock"
               label="Contraseña"
               :rules="passwordRules"
+              type="password"
               outlined
               clearable
               required
@@ -82,6 +83,7 @@
               prepend-inner-icon="fas fa-lock"
               label="Contraseña"
               :rules="passwordRules"
+              type="password"
               outlined
               clearable
               required
@@ -111,8 +113,6 @@
 </template>
 
 <script>
-import { mapState, mapMutations, mapActions } from "vuex";
-
 export default {
   name: "Login",
 
@@ -164,13 +164,13 @@ export default {
 
   methods: {
     async login() {
-      if (this.$refs.form.validate() && this.registerFormValid) {
+      if (this.$refs.form.validate() && this.loginFormValid) {
         try {
           const apiData = await this.axios.post("user/login/", this.userLogin);
 
           await this.$store.commit("setSession", apiData.data.data);
 
-          this.$router.push("Home");
+          window.location.reload();
         } catch (error) {
           this.errorLogin = error.response.data.error;
           this.snackbarErrorLogin = true;
@@ -189,7 +189,7 @@ export default {
 
           await this.$store.commit("setSession", apiData.data.data);
 
-          this.$router.push("Home");
+          window.location.reload();
         } catch (error) {
           this.errorRegister = error.response.data.error;
           this.snackbarErrorRegister = true;
