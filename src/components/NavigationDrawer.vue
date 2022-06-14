@@ -16,7 +16,7 @@
     <v-divider></v-divider>
     <v-list nav dense>
       <v-list-item-group v-model="selectedItem" color="primary" justify>
-        <v-list-item
+        <!-- <v-list-item
           link
           class="drawer-selected drawer-first-option"
           active-class="drawer-selected--active"
@@ -26,10 +26,16 @@
             <v-icon size="20">fas fa-fingerprint</v-icon>
           </v-list-item-icon>
           <v-list-item-title>Inicio</v-list-item-title>
-        </v-list-item>
-        <v-list-item
+        </v-list-item> -->
+        <!-- <v-list-item
           link
           class="drawer-selected"
+          active-class="drawer-selected--active"
+          :to="{ name: 'AllPasswords' }"
+        > -->
+        <v-list-item
+          link
+          class="drawer-selected drawer-first-option"
           active-class="drawer-selected--active"
           :to="{ name: 'AllPasswords' }"
         >
@@ -49,7 +55,10 @@
           :key="i"
           active-class="drawer-selected--active"
           class="drawer-selected"
-          :to="{ name: 'Category' }"
+          :to="{
+            name: 'Category',
+            params: { c: item.category },
+          }"
         >
           <v-list-item-icon>
             <v-icon size="18">fas fa-tag</v-icon>
@@ -156,9 +165,17 @@ export default {
     selectedItem: 0,
     items: [],
   }),
+
   created() {
     this.getCategories();
   },
+
+  watch: {
+    $route(to, from) {
+      this.getCategories();
+    },
+  },
+
   methods: {
     async signOut() {
       await this.$store.commit("deleteSession");
@@ -199,6 +216,27 @@ export default {
       }
     },
 
+    async addCategory() {
+      if (this.$refs.form.validate() && this.categoryFormValid) {
+        try {
+          let id_user = await this.$store.getters.getIDUser,
+            category = this.category;
+          const apiData = await this.axios.post("category/addCategory/", {
+            id_user,
+            category,
+          });
+
+          await this.getCategories();
+
+          this.category = "";
+          this.addCategoryDialog = false;
+        } catch (error) {
+          this.error = error.response.data.error;
+          this.snackbarError = true;
+        }
+      }
+    },
+
     async deleteCategory(actualCategory) {
       try {
         let id_user = await this.$store.getters.getIDUser;
@@ -213,6 +251,7 @@ export default {
 
         this.getCategories();
         this.deleteCategoryDialog = false;
+        this.$router.push("/all");
       } catch (error) {
         this.error = error.response.data.error;
         this.snackbarError = true;

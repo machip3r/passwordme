@@ -8,10 +8,10 @@ const routes = [
   {
     path: "/",
     beforeEnter: (to, from, next) => {
-      if (store.getters.getAuthToken !== null) router.push("/home");
+      /* if (store.getters.getAuthToken !== null) router.push("/home"); */
+      if (store.getters.getAuthToken !== null) router.push("/all");
       next();
     },
-    beforeEnter: (to, from, next) => router.push("/home"),
   },
   {
     path: "/home",
@@ -27,7 +27,8 @@ const routes = [
     name: "Login",
     component: () => import("../views/LoginView.vue"),
     beforeEnter: (to, from, next) => {
-      if (store.getters.getAuthToken !== null) router.push("/home");
+      /* if (store.getters.getAuthToken !== null) router.push("/home"); */
+      if (store.getters.getAuthToken !== null) router.push("/all");
       next();
     },
   },
@@ -41,7 +42,7 @@ const routes = [
     },
   },
   {
-    path: "/category",
+    path: "/category/:c",
     name: "Category",
     component: () => import("../views/Category.vue"),
     beforeEnter: (to, from, next) => {

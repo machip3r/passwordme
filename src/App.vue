@@ -9,6 +9,7 @@
 @import "./styles/main.css";
 @import "./styles/password.css";
 @import "./styles/login.css";
+@import "./styles/category.css";
 </style>
 
 <script>

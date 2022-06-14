@@ -155,6 +155,108 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="editPasswordDialog" max-width="700px">
+      <v-card>
+        <v-card-title>
+          <h4>Editar Contraseña</h4>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-form ref="form" v-model="passwordEditFormValid" lazy-validation>
+              <v-row>
+                <v-col cols="11">
+                  <v-select
+                    v-model="editingPassword.id_category"
+                    :items="categories"
+                    label="Selecciona las etiquetas"
+                    filled
+                    multiple
+                    prepend-inner-icon="fas fa-tag"
+                  >
+                    <template v-slot:selection="{ item, index }">
+                      <v-chip v-if="index === 0">
+                        <span>{{ item }}</span>
+                      </v-chip>
+                      <span v-if="index === 1" class="grey--text text-caption">
+                        (+{{ categories.length - 1 }} others)
+                      </span>
+                    </template>
+                  </v-select>
+                </v-col>
+                <v-col cols="1">
+                  <v-btn
+                    fab
+                    small
+                    color="accent"
+                    class="mt-3"
+                    @click="openAddCategory()"
+                  >
+                    <v-icon size="15">fas fa-plus</v-icon>
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-text-field
+                v-model="editingPassword.title"
+                prepend-inner-icon="fas fa-bold"
+                label="Título"
+                :rules="titleRules"
+                outlined
+                clearable
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="editingPassword.username"
+                prepend-inner-icon="fas fa-laugh"
+                label="Usuario"
+                outlined
+                clearable
+              ></v-text-field>
+              <v-text-field
+                v-model="editingPassword.email"
+                prepend-inner-icon="fas fa-at"
+                label="Correo electrónico"
+                :rules="emailRules"
+                outlined
+                clearable
+              ></v-text-field>
+              <v-text-field
+                v-model="editingPassword.password"
+                prepend-inner-icon="fas fa-lock"
+                label="Contraseña"
+                :rules="passwordRules"
+                type="password"
+                outlined
+                clearable
+                required
+              ></v-text-field>
+              <v-textarea
+                v-model="editingPassword.notes"
+                prepend-inner-icon="fas fa-sticky-note"
+                label="Notas o descripción"
+                outlined
+                clearable
+              ></v-textarea>
+              <v-text-field
+                v-model="editingPassword.url"
+                prepend-inner-icon="fas fa-link"
+                label="Sitio web (google.com)"
+                :rules="urlRules"
+                outlined
+                clearable
+                required
+              ></v-text-field>
+            </v-form>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="error" text @click="closeEditPassword()">
+            Cancelar
+          </v-btn>
+          <v-btn color="primary" text @click="editPassword()"> Editar </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="seePasswordDialog" max-width="700px">
       <v-card>
         <v-card-title>
@@ -194,7 +296,7 @@
                 readonly
                 :append-icon="showPassword ? 'fas fa-eye' : 'fas fa-eye'"
                 :type="showPassword ? 'text' : 'password'"
-                @click:append="decryptPassword()"
+                @click:append="decryptPassword(actualPassword.password)"
                 :value="actualPassword.password"
               ></v-text-field>
               <v-textarea
@@ -218,10 +320,10 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="error" text @click="openDeletePassword(actualPassword)">
+          <v-btn color="error" text @click="openDeletePassword()">
             Eliminar
           </v-btn>
-          <v-btn color="warning" text @click="openEditPassword(actualPassword)">
+          <v-btn color="warning" text @click="openEditPassword()">
             Editar
           </v-btn>
           <v-btn color="primary" text @click="closeSeePassword()"> OK </v-btn>
@@ -300,6 +402,7 @@ export default {
     deletePasswordDialog: false,
     addCategoryDialog: false,
     passwordFormValid: true,
+    passwordEditFormValid: true,
     categoryFormValid: true,
     snackbarError: false,
     showPassword: false,
@@ -310,7 +413,10 @@ export default {
     categories: [],
 
     actualPassword: [],
+    editingPassword: [],
     passwords: [],
+
+    encryptedPassword: "",
 
     categoryRules: [
       (value) =>
@@ -371,15 +477,19 @@ export default {
       this.seePasswordDialog = false;
     },
 
-    openEditPassword(password) {
+    openEditPassword() {
+      this.editingPassword = this.actualPassword;
+      this.editingPassword.password = "";
       this.editPasswordDialog = true;
     },
 
     closeEditPassword() {
+      this.editingPassword = [];
+
       this.editPasswordDialog = false;
     },
 
-    openDeletePassword(password) {
+    openDeletePassword() {
       this.deletePasswordDialog = true;
     },
 
@@ -441,6 +551,37 @@ export default {
       }
     },
 
+    async editPassword() {
+      if (this.$refs.form.validate() && this.passwordEditFormValid) {
+        try {
+          let id_user = this.$store.getters.getIDUser,
+            newPassword = this.editingPassword;
+          const config = {
+            headers: {
+              "Content-Type": "application/json",
+              AuthToken: this.$store.getters.getAuthToken,
+            },
+          };
+          const apiData = await this.axios.post(
+            "passwords/editPassword/",
+            { id_user, newPassword },
+            config
+          );
+
+          this.getPasswords();
+
+          this.editingPassword = [];
+          this.actualPassword = [];
+          this.showPassword = false;
+          this.seePasswordDialog = false;
+          this.editPasswordDialog = false;
+        } catch (error) {
+          this.error = error.response.data.error;
+          this.snackbarError = true;
+        }
+      }
+    },
+
     async deletePassword(id_password) {
       try {
         let id_user = await this.$store.getters.getIDUser;
@@ -463,6 +604,37 @@ export default {
         this.actualPassword = [];
         this.seePasswordDialog = false;
         this.deletePasswordDialog = false;
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
+      }
+    },
+
+    async decryptPassword(password) {
+      try {
+        this.encryptedPassword = password;
+
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            AuthToken: this.$store.getters.getAuthToken,
+          },
+        };
+        const apiData = await this.axios.post(
+          "passwords/decryptPassword/",
+          {
+            password,
+          },
+          config
+        );
+
+        this.showPassword = true;
+        this.actualPassword.password = apiData.data.data.decryptedPassword;
+        setTimeout(() => {
+          this.showPassword = false;
+          this.actualPassword.password = password;
+          this.encryptedPassword = "";
+        }, 3000);
       } catch (error) {
         this.error = error.response.data.error;
         this.snackbarError = true;
