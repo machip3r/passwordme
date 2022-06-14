@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "@babel/polyfill": "^7.4.4",
