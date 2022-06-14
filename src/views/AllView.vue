@@ -14,9 +14,46 @@
     </v-btn>
     <h1>Todas las Contraseñas</h1>
 
-    <div class="container-passwords"></div>
+    <div class="container-passwords">
+      <div
+        class="message-no-passwords"
+        v-if="passwords == null || passwords.length == 0"
+      >
+        <v-icon size="100">fas fa-frown</v-icon>
+        <h4>Aún no tienes contraseñas</h4>
+        <p>Puedes intentarlo con el botón de abajo a la derecha</p>
+      </div>
+      <div class="group-passwords" v-else>
+        <v-card
+          class="mx-2 my-2"
+          width="350"
+          v-for="password in passwords"
+          :key="password.title"
+          @click="seePassword(password)"
+        >
+          <v-img height="100" :src="password.urlLogo"></v-img>
+          <v-card-title>
+            <h5>{{ password.title }}</h5>
+          </v-card-title>
+          <v-card-text>
+            <div>
+              <a :href="password.url">{{ password.url }}</a>
+            </div>
+            <v-chip-group column show-arrows>
+              <v-chip
+                v-for="category in password.id_category"
+                :key="category"
+                color="accent"
+              >
+                {{ category }}
+              </v-chip>
+            </v-chip-group>
+          </v-card-text>
+        </v-card>
+      </div>
+    </div>
 
-    <v-dialog v-model="addPasswordDialog" persistent max-width="700px">
+    <v-dialog v-model="addPasswordDialog" max-width="700px">
       <v-card>
         <v-card-title>
           <h4>Agregar Contraseña</h4>
@@ -118,7 +155,80 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="addCategoryDialog" persistent max-width="700px">
+    <v-dialog v-model="seePasswordDialog" max-width="700px">
+      <v-card>
+        <v-card-title>
+          <h4>{{ actualPassword.title }}</h4>
+        </v-card-title>
+        <v-card-text class="mt-1">
+          <div class="container-info-password">
+            <div class="container-info-password-inside">
+              <v-chip-group column show-arrows>
+                <v-chip
+                  v-for="category in actualPassword.id_category"
+                  :key="category"
+                  color="accent"
+                >
+                  {{ category }}
+                </v-chip>
+              </v-chip-group>
+              <v-text-field
+                class="mt-3"
+                prepend-inner-icon="fas fa-laugh"
+                label="Usuario"
+                outlined
+                readonly
+                :value="actualPassword.username"
+              ></v-text-field>
+              <v-text-field
+                prepend-inner-icon="fas fa-at"
+                label="Correo electrónico"
+                outlined
+                readonly
+                :value="actualPassword.email"
+              ></v-text-field>
+              <v-text-field
+                prepend-inner-icon="fas fa-lock"
+                label="Contraseña"
+                outlined
+                readonly
+                :append-icon="showPassword ? 'fas fa-eye' : 'fas fa-eye'"
+                :type="showPassword ? 'text' : 'password'"
+                @click:append="decryptPassword()"
+                :value="actualPassword.password"
+              ></v-text-field>
+              <v-textarea
+                prepend-inner-icon="fas fa-sticky-note"
+                label="Notas o descripción"
+                outlined
+                readonly
+                :value="actualPassword.notes"
+              ></v-textarea>
+              <v-text-field
+                prepend-inner-icon="fas fa-link"
+                label="Sitio web"
+                outlined
+                readonly
+                append-icon="fas fa-external-link-alt"
+                @click:append="goTo(actualPassword.url)"
+                :value="actualPassword.url"
+              ></v-text-field>
+            </div>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="error" text @click="openDeletePassword(actualPassword)">
+            Eliminar
+          </v-btn>
+          <v-btn color="warning" text @click="openEditPassword(actualPassword)">
+            Editar
+          </v-btn>
+          <v-btn color="primary" text @click="closeSeePassword()"> OK </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="addCategoryDialog" max-width="700px">
       <v-card>
         <v-card-title>
           <h4>Nueva Categoría</h4>
@@ -147,6 +257,35 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="deletePasswordDialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <h4>Eliminar contraseña</h4>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            ¿Estás seguro de eliminar esta contraseña?
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="closeDeletePassword()">
+            Cancelar
+          </v-btn>
+          <v-btn color="error" text @click="deletePassword(actualPassword._id)">
+            Eliminar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-snackbar v-model="snackbarError" timeout="3000">
+      {{ error }}
+      <template v-slot:action="{ attrs }">
+        <v-btn color="blue" text v-bind="attrs" @click="snackbarError = false">
+          Cerrar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
@@ -156,16 +295,26 @@ export default {
 
   data: () => ({
     addPasswordDialog: false,
+    seePasswordDialog: false,
+    editPasswordDialog: false,
+    deletePasswordDialog: false,
     addCategoryDialog: false,
     passwordFormValid: true,
     categoryFormValid: true,
+    snackbarError: false,
+    showPassword: false,
+
+    error: "",
 
     category: "",
     categories: [],
 
+    actualPassword: [],
+    passwords: [],
+
     categoryRules: [
       (value) =>
-        (value && value.length > 1) ||
+        (value && value.length > 0) ||
         "La categoría debe ser de al menos 1 caracter",
     ],
     titleRules: [(value) => !!value || "Escribe un título para la contraseña"],
@@ -189,7 +338,7 @@ export default {
         visits: 0,
         url: "",
         urlLogo: "",
-        date: "",
+        date: Date.now(),
       },
     },
   }),
@@ -198,6 +347,7 @@ export default {
 
   created() {
     this.getCategories();
+    this.getPasswords();
   },
 
   methods: {
@@ -206,29 +356,116 @@ export default {
     },
 
     closeAddPassword() {
-      //clean form
       this.addPasswordDialog = false;
     },
 
-    async addPassword() {
-      if (this.$refs.form.validate() && this.passwordFormValid) {
-        this.passwordsList.id_user = this.$store.getters.getIDUser;
-        this.passwordsList.passwordArray.date = Date.now;
+    openSeePassword(password) {
+      this.actualPassword = password;
+      this.seePasswordDialog = true;
+    },
 
+    closeSeePassword() {
+      this.actualPassword = [];
+      this.showPassword = false;
+
+      this.seePasswordDialog = false;
+    },
+
+    openEditPassword(password) {
+      this.editPasswordDialog = true;
+    },
+
+    closeEditPassword() {
+      this.editPasswordDialog = false;
+    },
+
+    openDeletePassword(password) {
+      this.deletePasswordDialog = true;
+    },
+
+    closeDeletePassword() {
+      this.actualPassword = [];
+
+      this.deletePasswordDialog = false;
+    },
+
+    async getPasswords() {
+      try {
+        let id_user = await this.$store.getters.getIDUser;
         const config = {
           headers: {
             "Content-Type": "application/json",
             AuthToken: this.$store.getters.getAuthToken,
           },
         };
+        const apiData = await this.axios.get("passwords/" + id_user, config);
 
+        this.passwords = apiData.data.data.passwords;
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
+      }
+    },
+
+    async seePassword(password) {
+      // add visits
+      this.openSeePassword(password);
+    },
+
+    async addPassword() {
+      if (this.$refs.form.validate() && this.passwordFormValid) {
+        try {
+          this.passwordsList.id_user = this.$store.getters.getIDUser;
+
+          const config = {
+            headers: {
+              "Content-Type": "application/json",
+              AuthToken: this.$store.getters.getAuthToken,
+            },
+          };
+          const apiData = await this.axios.post(
+            "passwords/addPassword/",
+            this.passwordsList,
+            config
+          );
+
+          this.getPasswords();
+
+          this.$refs.form.reset();
+
+          this.addPasswordDialog = false;
+        } catch (error) {
+          this.error = error.response.data.error;
+          this.snackbarError = true;
+        }
+      }
+    },
+
+    async deletePassword(id_password) {
+      try {
+        let id_user = await this.$store.getters.getIDUser;
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            AuthToken: this.$store.getters.getAuthToken,
+          },
+        };
         const apiData = await this.axios.post(
-          "passwords/addPassword/",
-          this.passwordsList,
+          "passwords/deletePassword/",
+          {
+            id_user,
+            id_password,
+          },
           config
         );
 
-        this.addPasswordDialog = false;
+        this.getPasswords();
+        this.actualPassword = [];
+        this.seePasswordDialog = false;
+        this.deletePasswordDialog = false;
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
       }
     },
 
@@ -237,31 +474,48 @@ export default {
     },
 
     closeAddCategory() {
-      //clean form
+      this.category = "";
       this.addCategoryDialog = false;
     },
 
     async getCategories() {
-      let id_user = await this.$store.getters.getIDUser;
+      try {
+        let id_user = await this.$store.getters.getIDUser;
+        const apiData = await this.axios.get("category/" + id_user);
 
-      const apiData = await this.axios.get("category/" + id_user);
+        apiData.data.data.categoriesObject.forEach((element) =>
+          this.categories.push(element.category)
+        );
 
-      this.categories = apiData.data.data.categories.sort();
+        this.categories = this.categories.sort();
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
+      }
     },
 
     async addCategory() {
       if (this.$refs.form.validate() && this.categoryFormValid) {
-        let id_user = await this.$store.getters.getIDUser,
-          category = this.category;
-        const apiData = await this.axios.post("category/addCategory/", {
-          id_user,
-          category,
-        });
+        try {
+          let id_user = await this.$store.getters.getIDUser,
+            category = this.category;
+          const apiData = await this.axios.post("category/addCategory/", {
+            id_user,
+            category,
+          });
 
-        await this.getCategories();
+          await this.getCategories();
 
-        this.addCategoryDialog = false;
+          this.category = "";
+          this.addCategoryDialog = false;
+        } catch (error) {
+          this.error = error.response.data.error;
+          this.snackbarError = true;
+        }
       }
+    },
+    async goTo(url) {
+      window.open("https://" + url, "_blank");
     },
   },
 };

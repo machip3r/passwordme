@@ -55,8 +55,13 @@
             <v-icon size="18">fas fa-tag</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title v-text="item.text"></v-list-item-title>
+            <v-list-item-title v-text="item.category"></v-list-item-title>
           </v-list-item-content>
+          <v-list-item-icon
+            @click="openDeleteCategory(item._id, item.category)"
+          >
+            <v-icon size="18">fas fa-trash</v-icon>
+          </v-list-item-icon>
         </v-list-item>
         <v-list-item justify-end class="drawer-logout" @click="signOut()">
           <v-list-item-icon>
@@ -95,6 +100,33 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="deleteCategoryDialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <h4>Eliminar categoría</h4>
+        </v-card-title>
+        <v-card-text>
+          <v-container> ¿Estás seguro de eliminar esta categoría? </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="closeDeleteCategory()">
+            Cancelar
+          </v-btn>
+          <v-btn color="error" text @click="deleteCategory(actualCategory)">
+            Eliminar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-snackbar v-model="snackbarError" timeout="3000">
+      {{ error }}
+      <template v-slot:action="{ attrs }">
+        <v-btn color="blue" text v-bind="attrs" @click="snackbarError = false">
+          Cerrar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-navigation-drawer>
 </template>
 
@@ -105,7 +137,15 @@ export default {
   data: () => ({
     addCategoryDialog: false,
     categoryFormValid: true,
+    deleteCategoryDialog: false,
+    snackbarError: false,
 
+    error: "",
+
+    actualCategory: {
+      id_category: "",
+      category: "",
+    },
     category: "",
     categoryRules: [
       (value) =>
@@ -135,23 +175,48 @@ export default {
       this.addCategoryDialog = false;
     },
 
+    openDeleteCategory(id_category, category) {
+      this.actualCategory = { id_category: id_category, category: category };
+
+      this.deleteCategoryDialog = true;
+    },
+
+    closeDeleteCategory() {
+      this.actualCategory = {};
+
+      this.deleteCategoryDialog = false;
+    },
+
     async getCategories() {
-      let id_user = await this.$store.getters.getIDUser;
+      try {
+        let id_user = await this.$store.getters.getIDUser;
+        const apiData = await this.axios.get("category/" + id_user);
 
-      const apiData = await this.axios.get("category/" + id_user);
-
-      let tags = [];
-
-      for (let i = 0; i < apiData.data.data.categories.length; i++) {
-        let tag = new Object();
-
-        tag.text = apiData.data.data.categories[i];
-        tag.to = apiData.data.data.categories[i].toLowerCase();
-
-        tags.push(tag);
+        this.items = apiData.data.data.categoriesObject;
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
       }
+    },
 
-      this.items = tags;
+    async deleteCategory(actualCategory) {
+      try {
+        let id_user = await this.$store.getters.getIDUser;
+        let id_category = actualCategory.id_category,
+          category = actualCategory.category;
+
+        const apiData = await this.axios.post("category/deleteCategory/", {
+          id_user,
+          id_category,
+          category,
+        });
+
+        this.getCategories();
+        this.deleteCategoryDialog = false;
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
+      }
     },
   },
 };
