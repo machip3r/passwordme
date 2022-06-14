@@ -653,6 +653,8 @@ export default {
         let id_user = await this.$store.getters.getIDUser;
         const apiData = await this.axios.get("category/" + id_user);
 
+        console.log(this.items);
+
         this.items = apiData.data.data.categoriesObject;
       } catch (error) {
         this.error = error.response.data.error;
