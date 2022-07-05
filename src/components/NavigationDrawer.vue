@@ -83,7 +83,7 @@
     <v-dialog v-model="addCategoryDialog" persistent max-width="700px">
       <v-card>
         <v-card-title>
-          <h4>Nueva Categoría</h4>
+          <h4>Nueva Etiqueta</h4>
         </v-card-title>
         <v-card-text>
           <v-container>
@@ -91,11 +91,10 @@
               <v-text-field
                 v-model="category"
                 prepend-inner-icon="fas fa-tag"
-                label="Categoría"
+                label="Etiqueta"
                 :rules="categoryRules"
                 outlined
                 clearable
-                required
               ></v-text-field>
             </v-form>
           </v-container>
@@ -112,10 +111,10 @@
     <v-dialog v-model="deleteCategoryDialog" max-width="500px">
       <v-card>
         <v-card-title>
-          <h4>Eliminar categoría</h4>
+          <h4>Eliminar etiqueta</h4>
         </v-card-title>
         <v-card-text>
-          <v-container> ¿Estás seguro de eliminar esta categoría? </v-container>
+          <v-container> ¿Estás seguro de eliminar esta etiqueta? </v-container>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -158,8 +157,8 @@ export default {
     category: "",
     categoryRules: [
       (value) =>
-        (value && value.length > 1) ||
-        "La categoría debe ser de al menos 1 caracter",
+        (value && value.length > 0) ||
+        "La etiqueta debe ser de al menos 1 caracter",
     ],
 
     selectedItem: 0,

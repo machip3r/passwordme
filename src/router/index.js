@@ -10,6 +10,7 @@ const routes = [
     beforeEnter: (to, from, next) => {
       /* if (store.getters.getAuthToken !== null) router.push("/home"); */
       if (store.getters.getAuthToken !== null) router.push("/all");
+      else router.push("/login");
       next();
     },
   },

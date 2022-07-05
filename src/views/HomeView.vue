@@ -61,7 +61,7 @@
       </v-slide-group>
     </div>
     <div class="container-categories-home">
-      <h4>Categorías</h4>
+      <h4>Etiquetas</h4>
       <v-slide-group class="pa-4" show-arrows>
         <v-slide-item v-for="n in 5" :key="n">
           <v-card class="mx-3" max-width="200" color="info">

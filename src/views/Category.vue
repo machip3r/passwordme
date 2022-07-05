@@ -13,7 +13,7 @@
       <v-icon size="15">fas fa-plus</v-icon>
     </v-btn>
     <h1>
-      Categoría:
+      Etiqueta:
       {{
         this.$route.params.c.toLowerCase().charAt(0).toUpperCase() +
         this.$route.params.c.slice(1)
@@ -74,16 +74,17 @@
                     label="Selecciona las etiquetas"
                     filled
                     multiple
+                    chips
                     prepend-inner-icon="fas fa-tag"
                   >
-                    <template v-slot:selection="{ item, index }">
+                    <!-- <template v-slot:selection="{ item, index }">
                       <v-chip v-if="index === 0">
                         <span>{{ item }}</span>
                       </v-chip>
                       <span v-if="index === 1" class="grey--text text-caption">
                         (+{{ categories.length - 1 }} others)
                       </span>
-                    </template>
+                    </template> -->
                   </v-select>
                 </v-col>
                 <v-col cols="1">
@@ -127,11 +128,29 @@
                 prepend-inner-icon="fas fa-lock"
                 label="Contraseña"
                 :rules="passwordRules"
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
+                :color="colorSecurity"
                 outlined
                 clearable
                 required
-              ></v-text-field>
+              >
+                <template slot="append">
+                  <v-icon
+                    @click="
+                      checkSecurity(passwordsList.passwordArray.password, false)
+                    "
+                    >fas fa-shield-alt</v-icon
+                  >
+                  <v-icon
+                    @click="showPassword = !showPassword"
+                    v-if="showPassword"
+                    >fas fa-eye-slash</v-icon
+                  >
+                  <v-icon @click="showPassword = !showPassword" v-else
+                    >fas fa-eye</v-icon
+                  >
+                </template>
+              </v-text-field>
               <v-textarea
                 v-model="passwordsList.passwordArray.notes"
                 prepend-inner-icon="fas fa-sticky-note"
@@ -176,16 +195,17 @@
                     label="Selecciona las etiquetas"
                     filled
                     multiple
+                    chips
                     prepend-inner-icon="fas fa-tag"
                   >
-                    <template v-slot:selection="{ item, index }">
+                    <!-- <template v-slot:selection="{ item, index }">
                       <v-chip v-if="index === 0">
                         <span>{{ item }}</span>
                       </v-chip>
                       <span v-if="index === 1" class="grey--text text-caption">
                         (+{{ categories.length - 1 }} others)
                       </span>
-                    </template>
+                    </template> -->
                   </v-select>
                 </v-col>
                 <v-col cols="1">
@@ -200,15 +220,6 @@
                   </v-btn>
                 </v-col>
               </v-row>
-              <v-text-field
-                v-model="editingPassword.title"
-                prepend-inner-icon="fas fa-bold"
-                label="Título"
-                :rules="titleRules"
-                outlined
-                clearable
-                required
-              ></v-text-field>
               <v-text-field
                 v-model="editingPassword.username"
                 prepend-inner-icon="fas fa-laugh"
@@ -229,11 +240,26 @@
                 prepend-inner-icon="fas fa-lock"
                 label="Contraseña"
                 :rules="passwordRules"
-                type="password"
+                :type="showPassword ? 'text' : 'password'"
+                :color="colorSecurity"
                 outlined
                 clearable
                 required
-              ></v-text-field>
+              >
+                <template slot="append">
+                  <v-icon @click="checkSecurity(editingPassword.password, true)"
+                    >fas fa-shield-alt</v-icon
+                  >
+                  <v-icon
+                    @click="showPassword = !showPassword"
+                    v-if="showPassword"
+                    >fas fa-eye-slash</v-icon
+                  >
+                  <v-icon @click="showPassword = !showPassword" v-else
+                    >fas fa-eye</v-icon
+                  >
+                </template>
+              </v-text-field>
               <v-textarea
                 v-model="editingPassword.notes"
                 prepend-inner-icon="fas fa-sticky-note"
@@ -338,7 +364,7 @@
     <v-dialog v-model="addCategoryDialog" max-width="700px">
       <v-card>
         <v-card-title>
-          <h4>Nueva Categoría</h4>
+          <h4>Nueva Etiqueta</h4>
         </v-card-title>
         <v-card-text>
           <v-container>
@@ -346,7 +372,8 @@
               <v-text-field
                 v-model="category"
                 prepend-inner-icon="fas fa-tag"
-                label="Categoría"
+                label="Etiqueta"
+                :rules="categoryRules"
                 outlined
                 clearable
               ></v-text-field>
@@ -413,6 +440,7 @@ export default {
     showPassword: false,
 
     error: "",
+    colorSecurity: "",
 
     category: "",
     categories: [],
@@ -421,12 +449,13 @@ export default {
     editingPassword: [],
     passwords: [],
 
+    decryptedPassword: "",
     encryptedPassword: "",
 
     categoryRules: [
       (value) =>
         (value && value.length > 0) ||
-        "La categoría debe ser de al menos 1 caracter",
+        "La etiqueta debe ser de al menos 1 caracter",
     ],
     titleRules: [(value) => !!value || "Escribe un título para la contraseña"],
     emailRules: [
@@ -445,6 +474,7 @@ export default {
         username: "",
         email: "",
         password: "",
+        security: 0,
         notes: "",
         visits: 0,
         url: "",
@@ -464,6 +494,31 @@ export default {
     addPasswordDialog(newValue, old) {
       if (!newValue) {
         this.passwordsList.passwordArray.id_category = [];
+        this.passwordsList.passwordArray.title = "";
+        this.passwordsList.passwordArray.username = "";
+        this.passwordsList.passwordArray.email = "";
+        this.passwordsList.passwordArray.password = "";
+        this.passwordsList.passwordArray.security = 0;
+        this.passwordsList.passwordArray.notes = "";
+        this.passwordsList.passwordArray.visits = 0;
+        this.passwordsList.passwordArray.url = "";
+        this.passwordsList.passwordArray.urlLogo = "";
+
+        this.$refs.form.reset();
+      }
+    },
+    editPasswordDialog(newValue, old) {
+      if (!newValue) {
+        this.editingPassword.id_category = [];
+        this.editingPassword.title = "";
+        this.editingPassword.username = "";
+        this.editingPassword.email = "";
+        this.editingPassword.password = "";
+        this.editingPassword.security = 0;
+        this.editingPassword.notes = "";
+        this.editingPassword.visits = 0;
+        this.editingPassword.url = "";
+        this.editingPassword.urlLogo = "";
       }
     },
   },
@@ -489,25 +544,47 @@ export default {
     },
 
     openSeePassword(password) {
-      this.actualPassword = password;
+      let aux = JSON.stringify(password);
+      this.actualPassword = JSON.parse(aux);
+
       this.seePasswordDialog = true;
     },
 
     closeSeePassword() {
-      this.actualPassword = [];
+      this.actualPassword.id_category = [];
+      this.actualPassword.title = "";
+      this.actualPassword.username = "";
+      this.actualPassword.email = "";
+      this.actualPassword.password = "";
+      this.actualPassword.security = 0;
+      this.actualPassword.notes = "";
+      this.actualPassword.visits = 0;
+      this.actualPassword.url = "";
+      this.actualPassword.urlLogo = "";
+
       this.showPassword = false;
 
       this.seePasswordDialog = false;
     },
 
     openEditPassword() {
-      this.editingPassword = this.actualPassword;
+      let aux = JSON.stringify(this.actualPassword);
+      this.editingPassword = JSON.parse(aux);
       this.editingPassword.password = "";
       this.editPasswordDialog = true;
     },
 
     closeEditPassword() {
-      this.editingPassword = [];
+      this.editingPassword.id_category = [];
+      this.editingPassword.title = "";
+      this.editingPassword.username = "";
+      this.editingPassword.email = "";
+      this.editingPassword.password = "";
+      this.editingPassword.security = 0;
+      this.editingPassword.notes = "";
+      this.editingPassword.visits = 0;
+      this.editingPassword.url = "";
+      this.editingPassword.urlLogo = "";
 
       this.editPasswordDialog = false;
     },
@@ -517,17 +594,26 @@ export default {
     },
 
     closeDeletePassword() {
-      this.actualPassword = [];
+      this.actualPassword.id_category = [];
+      this.actualPassword.title = "";
+      this.actualPassword.username = "";
+      this.actualPassword.email = "";
+      this.actualPassword.password = "";
+      this.actualPassword.security = 0;
+      this.actualPassword.notes = "";
+      this.actualPassword.visits = 0;
+      this.actualPassword.url = "";
+      this.actualPassword.urlLogo = "";
 
       this.deletePasswordDialog = false;
     },
 
     async getPasswordsByCategory() {
       try {
-        let id_user = await this.$store.getters.getIDUser;
-        const apiData = await this.axios.get(
-          "category/" + id_user + "/" + this.$route.params.c
-        );
+        const id_user = await this.$store.getters.getIDUser,
+          apiData = await this.axios.get(
+            "category/" + id_user + "/" + this.$route.params.c
+          );
 
         this.passwords = apiData.data.data.passwords;
       } catch (error) {
@@ -547,16 +633,16 @@ export default {
           this.passwordsList.id_user = this.$store.getters.getIDUser;
 
           const config = {
-            headers: {
-              "Content-Type": "application/json",
-              AuthToken: this.$store.getters.getAuthToken,
+              headers: {
+                "Content-Type": "application/json",
+                AuthToken: this.$store.getters.getAuthToken,
+              },
             },
-          };
-          const apiData = await this.axios.post(
-            "passwords/addPassword/",
-            this.passwordsList,
-            config
-          );
+            apiData = await this.axios.post(
+              "passwords/addPassword/",
+              this.passwordsList,
+              config
+            );
 
           this.getPasswordsByCategory();
 
@@ -576,22 +662,41 @@ export default {
           let id_user = this.$store.getters.getIDUser,
             newPassword = this.editingPassword;
           const config = {
-            headers: {
-              "Content-Type": "application/json",
-              AuthToken: this.$store.getters.getAuthToken,
+              headers: {
+                "Content-Type": "application/json",
+                AuthToken: this.$store.getters.getAuthToken,
+              },
             },
-          };
-          const apiData = await this.axios.post(
-            "passwords/editPassword/",
-            { id_user, newPassword },
-            config
-          );
+            apiData = await this.axios.post(
+              "passwords/editPassword/",
+              { id_user, newPassword },
+              config
+            );
 
           this.getPasswordsByCategory();
 
-          this.editingPassword = [];
+          this.editingPassword.id_category = [];
+          this.editingPassword.title = "";
+          this.editingPassword.username = "";
+          this.editingPassword.email = "";
+          this.editingPassword.password = "";
+          this.editingPassword.security = 0;
+          this.editingPassword.notes = "";
+          this.editingPassword.visits = 0;
+          this.editingPassword.url = "";
+          this.editingPassword.urlLogo = "";
 
-          this.actualPassword = [];
+          this.actualPassword.id_category = [];
+          this.actualPassword.title = "";
+          this.actualPassword.username = "";
+          this.actualPassword.email = "";
+          this.actualPassword.password = "";
+          this.actualPassword.security = 0;
+          this.actualPassword.notes = "";
+          this.actualPassword.visits = 0;
+          this.actualPassword.url = "";
+          this.actualPassword.urlLogo = "";
+
           this.showPassword = false;
           this.seePasswordDialog = false;
           this.editPasswordDialog = false;
@@ -606,24 +711,94 @@ export default {
       try {
         let id_user = await this.$store.getters.getIDUser;
         const config = {
-          headers: {
-            "Content-Type": "application/json",
-            AuthToken: this.$store.getters.getAuthToken,
+            headers: {
+              "Content-Type": "application/json",
+              AuthToken: this.$store.getters.getAuthToken,
+            },
           },
-        };
-        const apiData = await this.axios.post(
-          "passwords/deletePassword/",
-          {
-            id_user,
-            id_password,
-          },
-          config
-        );
+          apiData = await this.axios.post(
+            "passwords/deletePassword/",
+            {
+              id_user,
+              id_password,
+            },
+            config
+          );
 
         this.getPasswordsByCategory();
-        this.actualPassword = [];
+
+        this.actualPassword.id_category = [];
+        this.actualPassword.title = "";
+        this.actualPassword.username = "";
+        this.actualPassword.email = "";
+        this.actualPassword.password = "";
+        this.actualPassword.security = 0;
+        this.actualPassword.notes = "";
+        this.actualPassword.visits = 0;
+        this.actualPassword.url = "";
+        this.actualPassword.urlLogo = "";
+
         this.seePasswordDialog = false;
         this.deletePasswordDialog = false;
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
+      }
+    },
+
+    async checkSecurity(password, isEdit) {
+      try {
+        const config = {
+            headers: {
+              "Content-Type": "application/json",
+              AuthToken: this.$store.getters.getAuthToken,
+            },
+          },
+          apiData = await this.axios.post(
+            "passwords/checkPasswordSecurity/",
+            { password },
+            config
+          );
+
+        let security = apiData.data.data.security;
+
+        if (security < 25) this.colorSecurity = "error";
+        else if (security > 25 && security < 50) this.colorSecurity = "orange";
+        else if (security > 50 && security < 75) this.colorSecurity = "accent";
+        else if (security > 75) this.colorSecurity = "success";
+
+        isEdit
+          ? (this.editingPassword.security = security)
+          : (this.passwordsList.passwordArray.security = security);
+      } catch (error) {
+        this.error = error.response.data.error;
+        this.snackbarError = true;
+      }
+    },
+
+    async encryptPassword(password) {
+      try {
+        this.decryptedPassword = password;
+
+        const config = {
+            headers: {
+              "Content-Type": "application/json",
+              AuthToken: this.$store.getters.getAuthToken,
+            },
+          },
+          apiData = await this.axios.post(
+            "passwords/encryptPassword/",
+            { password },
+            config
+          );
+
+        this.showPassword = false;
+        this.actualPassword.password = apiData.data.data.encryptedPassword;
+        /* setTimeout(() => {
+          this.showPassword = false;
+          this.actualPassword.password = password;
+          this.decryptedPassword = "";
+        }, 3000); */
       } catch (error) {
         this.error = error.response.data.error;
         this.snackbarError = true;
@@ -635,26 +810,24 @@ export default {
         this.encryptedPassword = password;
 
         const config = {
-          headers: {
-            "Content-Type": "application/json",
-            AuthToken: this.$store.getters.getAuthToken,
+            headers: {
+              "Content-Type": "application/json",
+              AuthToken: this.$store.getters.getAuthToken,
+            },
           },
-        };
-        const apiData = await this.axios.post(
-          "passwords/decryptPassword/",
-          {
-            password,
-          },
-          config
-        );
+          apiData = await this.axios.post(
+            "passwords/decryptPassword/",
+            { password },
+            config
+          );
 
         this.showPassword = true;
         this.actualPassword.password = apiData.data.data.decryptedPassword;
-        setTimeout(() => {
+        /* setTimeout(() => {
           this.showPassword = false;
           this.actualPassword.password = password;
           this.encryptedPassword = "";
-        }, 3000);
+        }, 3000); */
       } catch (error) {
         this.error = error.response.data.error;
         this.snackbarError = true;
@@ -672,8 +845,8 @@ export default {
 
     async getCategories() {
       try {
-        let id_user = await this.$store.getters.getIDUser;
-        const apiData = await this.axios.get("category/" + id_user);
+        const id_user = await this.$store.getters.getIDUser,
+          apiData = await this.axios.get("category/" + id_user);
 
         apiData.data.data.categoriesObject.forEach((element) =>
           this.categories.push(element.category)
@@ -689,12 +862,12 @@ export default {
     async addCategory() {
       if (this.$refs.form.validate() && this.categoryFormValid) {
         try {
-          let id_user = await this.$store.getters.getIDUser,
-            category = this.category;
-          const apiData = await this.axios.post("category/addCategory/", {
-            id_user,
-            category,
-          });
+          const id_user = await this.$store.getters.getIDUser,
+            category = this.category,
+            apiData = await this.axios.post("category/addCategory/", {
+              id_user,
+              category,
+            });
 
           await this.getCategories();
 
